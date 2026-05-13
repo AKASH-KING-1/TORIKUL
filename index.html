@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
 <title>Happy Birthday Torikul</title>
 
 <style>
@@ -10,8 +11,8 @@
   margin:0;
   padding:0;
   box-sizing:border-box;
-  -webkit-user-select:none;
   user-select:none;
+  -webkit-user-select:none;
 }
 
 html,body{
@@ -19,88 +20,86 @@ html,body{
   height:100%;
   overflow:hidden;
   background:#000;
-  touch-action: manipulation;
+
+  /* 🔒 HARD LOCK (NO ZOOM / APP FEEL) */
+  touch-action:none;
+  overscroll-behavior:none;
+  position:fixed;
+  width:100%;
+  height:100%;
 }
 
-/* NO ZOOM FIX (important for Android app-like feel) */
-body{
-  zoom:1;
-}
-
-/* Center text */
+/* 🌈 CENTER TITLE RGB ANIMATION */
 .center{
   position:absolute;
   top:50%;
   left:50%;
   transform:translate(-50%,-50%);
   text-align:center;
-  font-size:clamp(30px,6vw,46px);
-  font-weight:800;
+  font-size:clamp(30px,6vw,48px);
+  font-weight:900;
   z-index:10;
   animation:rgb 3s infinite linear;
 }
 
 @keyframes rgb{
-  0%{color:#ff0040;text-shadow:0 0 18px #ff0040;}
-  25%{color:#00ffff;text-shadow:0 0 18px #00ffff;}
-  50%{color:#00ff6a;text-shadow:0 0 18px #00ff6a;}
-  75%{color:#ffd000;text-shadow:0 0 18px #ffd000;}
-  100%{color:#ff00ff;text-shadow:0 0 18px #ff00ff;}
+  0%{color:#ff0040;text-shadow:0 0 20px #ff0040;}
+  20%{color:#00ffff;text-shadow:0 0 20px #00ffff;}
+  40%{color:#00ff6a;text-shadow:0 0 20px #00ff6a;}
+  60%{color:#ffd000;text-shadow:0 0 20px #ffd000;}
+  80%{color:#ff00ff;text-shadow:0 0 20px #ff00ff;}
+  100%{color:#ff0040;text-shadow:0 0 20px #ff0040;}
 }
 
-/* SMOOTH BIG FALLING TEXT */
+/* ⬇️ SMOOTH RGB FALLING TEXT */
 .fall{
   position:absolute;
   top:-80px;
-  font-size:20px; /* bigger text */
+  font-size:18px;
   font-weight:700;
   white-space:nowrap;
-  color:white;
-  text-shadow:0 0 12px cyan;
   animation:drop linear forwards;
-  will-change: transform;
+  will-change:transform;
   opacity:0.95;
+  animation-timing-function: linear;
+  text-shadow:0 0 12px cyan;
 }
 
-/* SLOW SMOOTH FALL (important fix) */
 @keyframes drop{
-  from{
-    transform:translate3d(0,-100px,0);
-  }
-  to{
-    transform:translate3d(0,110vh,0);
-  }
+  from{transform:translate3d(0,-100px,0);}
+  to{transform:translate3d(0,110vh,0);}
 }
 
-/* touch glow */
+/* ✨ TOUCH NEON EFFECT */
 .trail{
   position:absolute;
-  width:16px;
-  height:16px;
+  width:14px;
+  height:14px;
   border-radius:50%;
-  background:white;
+  background:#fff;
   pointer-events:none;
   box-shadow:0 0 10px red,0 0 20px cyan,0 0 30px lime;
-  animation:fade .9s forwards;
+  animation:fade .8s forwards;
 }
 
 @keyframes fade{
-  to{transform:scale(2.8);opacity:0;}
+  to{transform:scale(2.5);opacity:0;}
 }
 
-/* hidden music button */
+/* 🎵 MUSIC BUTTON (if autoplay blocked) */
 #btn{
   position:absolute;
-  bottom:30px;
+  bottom:25px;
   left:50%;
   transform:translateX(-50%);
-  padding:10px 20px;
+  padding:10px 18px;
   border:none;
   border-radius:12px;
   background:#111;
   color:#fff;
-  box-shadow:0 0 15px cyan;
+  box-shadow:0 0 12px cyan;
   display:none;
+  z-index:20;
 }
 </style>
 </head>
@@ -114,14 +113,15 @@ Happy Birthday<br>Torikul
 <button id="btn">Play Music</button>
 
 <audio id="music" loop playsinline>
-  <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+  <!-- 🎵 PUT YOUR REAL HAPPY BIRTHDAY MP3 HERE -->
+  <source src="music/happy-birthday.mp3" type="audio/mpeg">
 </audio>
 
 <script>
 const music=document.getElementById("music");
 const btn=document.getElementById("btn");
 
-/* autoplay */
+/* 🎵 autoplay attempt */
 window.addEventListener("load", async ()=>{
   try{
     await music.play();
@@ -136,62 +136,21 @@ btn.onclick=async ()=>{
   btn.style.display="none";
 };
 
-/* SMOOTH CONTROLLED FALLING (no jitter fix) */
+/* ⬇️ smooth falling RGB text */
 function spawn(){
   const el=document.createElement("div");
   el.className="fall";
   el.textContent="Happy Birthday Torikul ✨";
 
   el.style.left=Math.random()*window.innerWidth+"px";
-
-  /* slower + smooth */
   el.style.animationDuration=(6 + Math.random()*4)+"s";
 
   document.body.appendChild(el);
-
   setTimeout(()=>el.remove(),10000);
 }
+setInterval(spawn,300);
 
-/* lower frequency = no lag + smooth effect */
-setInterval(spawn,350);
-
-/* touch trail */
-document.addEventListener("touchmove",e=>{
-  const t=document.createElement("div");
-  t.className="trail";
-  t.style.left=e.touches[0].pageX+"px";
-  t.style.top=e.touches[0].pageY+"px";
-  document.body.appendChild(t);
-  setTimeout(()=>t.remove(),900);
-},{passive:true});
-</script>
-
-</body>
-</html>    await music.play();
-  }catch(e){
-    btn.style.display="block";
-  }
-});
-
-btn.onclick=async ()=>{
-  await music.play();
-  btn.style.display="none";
-};
-
-/* falling text (optimized) */
-function spawn(){
-  const el=document.createElement("div");
-  el.className="fall";
-  el.textContent="Happy Birthday Torikul";
-  el.style.left=Math.random()*window.innerWidth+"px";
-  el.style.animationDuration=(4+Math.random()*3)+"s";
-  document.body.appendChild(el);
-
-  setTimeout(()=>el.remove(),8000);
-}
-setInterval(spawn,250);
-
-/* touch effect */
+/* ✨ touch effect */
 document.addEventListener("touchmove",e=>{
   const t=document.createElement("div");
   t.className="trail";
@@ -201,14 +160,10 @@ document.addEventListener("touchmove",e=>{
   setTimeout(()=>t.remove(),800);
 },{passive:true});
 
-document.addEventListener("mousemove",e=>{
-  const t=document.createElement("div");
-  t.className="trail";
-  t.style.left=e.pageX+"px";
-  t.style.top=e.pageY+"px";
-  document.body.appendChild(t);
-  setTimeout(()=>t.remove(),800);
-});
+/* 🔒 HARD ZOOM BLOCK */
+document.addEventListener('gesturestart', e => e.preventDefault());
+document.addEventListener('gesturechange', e => e.preventDefault());
+document.addEventListener('gestureend', e => e.preventDefault());
 </script>
 
 </body>
