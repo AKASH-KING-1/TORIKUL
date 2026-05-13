@@ -2,185 +2,157 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Happy Birthday Torikul</title>
 
 <style>
 *{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family: Arial, sans-serif;
-}
-body{
-    background:#000;
-    overflow:hidden;
-    height:100vh;
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
 }
 
-
-.center-text{
-    position:absolute;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
-    text-align:center;
-    font-size:38px;   
-    font-weight:bold;
-    z-index:100;
-    animation: rgbGlow 2s infinite alternate;
+html,body{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#000;
+  font-family: Arial, sans-serif;
 }
 
-@keyframes rgbGlow{
-    0%{color:red; text-shadow:0 0 20px red;}
-    25%{color:cyan; text-shadow:0 0 20px cyan;}
-    50%{color:lime; text-shadow:0 0 20px lime;}
-    75%{color:yellow; text-shadow:0 0 20px yellow;}
-    100%{color:magenta; text-shadow:0 0 20px magenta;}
+/* Center text */
+.center{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  text-align:center;
+  font-size:clamp(28px,6vw,44px);
+  font-weight:700;
+  animation:rgb 3s infinite linear;
+  z-index:10;
 }
-    
+
+@keyframes rgb{
+  0%{color:#ff0040;text-shadow:0 0 15px #ff0040;}
+  25%{color:#00ffff;text-shadow:0 0 15px #00ffff;}
+  50%{color:#00ff6a;text-shadow:0 0 15px #00ff6a;}
+  75%{color:#ffd000;text-shadow:0 0 15px #ffd000;}
+  100%{color:#ff00ff;text-shadow:0 0 15px #ff00ff;}
+}
+
+/* Falling text */
 .fall{
-    position:absolute;
-    white-space:nowrap;
-    font-size:18px;
-    animation: fall linear infinite, rgbGlow 1s infinite alternate;
-    opacity:0.9;
+  position:absolute;
+  top:-50px;
+  font-size:14px;
+  white-space:nowrap;
+  animation:drop linear forwards;
+  will-change: transform;
+  opacity:0.9;
+  color:white;
+  text-shadow:0 0 10px cyan;
 }
 
-@keyframes fall{
-    from{transform:translateY(-100px);}
-    to{transform:translateY(110vh);}
+@keyframes drop{
+  from{transform:translateY(-60px);}
+  to{transform:translateY(110vh);}
 }
+
+/* Neon touch trail */
 .trail{
-    position:absolute;
-    width:20px;
-    height:20px;
-    border-radius:50%;
-    pointer-events:none;
-    background:white;
-    box-shadow:
-      0 0 10px red,
-      0 0 20px blue,
-      0 0 30px lime;
-    animation: fade 1s forwards;
+  position:absolute;
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  background:#fff;
+  pointer-events:none;
+  box-shadow:0 0 10px red,0 0 20px cyan,0 0 30px lime;
+  animation:fade .8s forwards;
 }
 
 @keyframes fade{
-    to{
-        transform:scale(3);
-        opacity:0;
-    }
+  to{transform:scale(2.5);opacity:0;}
 }
 
-
-#startBtn{
-    position:absolute;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
-    z-index:999;
-    padding:18px 35px;
-    border:none;
-    border-radius:20px;
-    font-size:22px;
-    font-weight:bold;
-    background:#111;
-    color:white;
-    box-shadow:0 0 20px cyan;
+/* hidden fallback */
+#btn{
+  position:absolute;
+  bottom:25px;
+  left:50%;
+  transform:translateX(-50%);
+  padding:10px 18px;
+  border:none;
+  border-radius:12px;
+  background:#111;
+  color:#fff;
+  box-shadow:0 0 12px cyan;
+  display:none;
 }
 </style>
 </head>
+
 <body>
 
-<button id="startBtn">🎵 Tap to Start</button>
-
-<div class="center-text">
-🎉 Happy Birthday <br> Torikul 🎂
+<div class="center">
+Happy Birthday <br> Torikul
 </div>
 
-<audio id="music" loop>
-  <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mp3">
+<button id="btn">Play Music</button>
+
+<audio id="music" loop playsinline>
+  <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
 </audio>
 
 <script>
-const music = document.getElementById("music");
-const btn = document.getElementById("startBtn");
+const music=document.getElementById("music");
+const btn=document.getElementById("btn");
 
-/* Android autoplay fix */
-btn.onclick = function(){
-   music.play();
-   btn.style.display="none";
+/* autoplay attempt */
+window.addEventListener("load", async ()=>{
+  try{
+    await music.play();
+  }catch(e){
+    btn.style.display="block";
+  }
+});
+
+btn.onclick=async ()=>{
+  await music.play();
+  btn.style.display="none";
 };
 
+/* falling text (optimized) */
+function spawn(){
+  const el=document.createElement("div");
+  el.className="fall";
+  el.textContent="Happy Birthday Torikul";
+  el.style.left=Math.random()*window.innerWidth+"px";
+  el.style.animationDuration=(4+Math.random()*3)+"s";
+  document.body.appendChild(el);
 
-function createText(){
-   let t=document.createElement("div");
-   t.className="fall";
-   t.innerText="Happy Birthday Torikul 🎉";
-   t.style.left=Math.random()*window.innerWidth+"px";
-   t.style.animationDuration=(Math.random()*4+4)+"s";
-   document.body.appendChild(t);
-
-   setTimeout(()=>t.remove(),8000);
+  setTimeout(()=>el.remove(),8000);
 }
-setInterval(createText,150);
+setInterval(spawn,250);
 
+/* touch effect */
+document.addEventListener("touchmove",e=>{
+  const t=document.createElement("div");
+  t.className="trail";
+  t.style.left=e.touches[0].pageX+"px";
+  t.style.top=e.touches[0].pageY+"px";
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),800);
+},{passive:true});
 
-document.addEventListener("touchmove", e=>{
-   let x=e.touches[0].pageX;
-   let y=e.touches[0].pageY;
-
-   let d=document.createElement("div");
-   d.className="trail";
-   d.style.left=x+"px";
-   d.style.top=y+"px";
-   document.body.appendChild(d);
-
-   setTimeout(()=>d.remove(),1000);
+document.addEventListener("mousemove",e=>{
+  const t=document.createElement("div");
+  t.className="trail";
+  t.style.left=e.pageX+"px";
+  t.style.top=e.pageY+"px";
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),800);
 });
-
-document.addEventListener("mousemove", e=>{
-   let d=document.createElement("div");
-   d.className="trail";
-   d.style.left=e.pageX+"px";
-   d.style.top=e.pageY+"px";
-   document.body.appendChild(d);
-
-   setTimeout(()=>d.remove(),1000);
-});
-</script>
-
-</body>
-</html>    text.innerText="Happy Birthday Torikul 🎉";
-    text.style.left=Math.random()*window.innerWidth+"px";
-    text.style.animationDuration=(Math.random()*4+4)+"s";
-    text.style.fontSize=(Math.random()*15+15)+"px";
-    document.body.appendChild(text);
-
-    setTimeout(()=>{
-        text.remove();
-    },8000);
-}
-setInterval(createFallingText,200);
-
-
-
-document.addEventListener("mousemove",makeTrail);
-document.addEventListener("touchmove",(e)=>{
-   makeTrail(e.touches[0]);
-});
-
-function makeTrail(e){
-    let t=document.createElement("div");
-    t.className="trail";
-    t.style.left=e.pageX+"px";
-    t.style.top=e.pageY+"px";
-    document.body.appendChild(t);
-
-    setTimeout(()=>{
-        t.remove();
-    },1000);
-}
 </script>
 
 </body>
