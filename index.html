@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <title>Happy Birthday Torikul</title>
 
@@ -11,8 +11,6 @@
   margin:0;
   padding:0;
   box-sizing:border-box;
-  user-select:none;
-  -webkit-user-select:none;
 }
 
 html,body{
@@ -20,57 +18,50 @@ html,body{
   height:100%;
   overflow:hidden;
   background:#000;
-
-  /* 🔒 HARD LOCK (NO ZOOM / APP FEEL) */
   touch-action:none;
-  overscroll-behavior:none;
-  position:fixed;
-  width:100%;
-  height:100%;
 }
 
-/* 🌈 CENTER TITLE RGB ANIMATION */
+/* CENTER TEXT */
 .center{
   position:absolute;
   top:50%;
   left:50%;
   transform:translate(-50%,-50%);
   text-align:center;
-  font-size:clamp(30px,6vw,48px);
+  font-size:clamp(30px,6vw,46px);
   font-weight:900;
-  z-index:10;
   animation:rgb 3s infinite linear;
+  z-index:10;
 }
 
 @keyframes rgb{
   0%{color:#ff0040;text-shadow:0 0 20px #ff0040;}
-  20%{color:#00ffff;text-shadow:0 0 20px #00ffff;}
-  40%{color:#00ff6a;text-shadow:0 0 20px #00ff6a;}
-  60%{color:#ffd000;text-shadow:0 0 20px #ffd000;}
-  80%{color:#ff00ff;text-shadow:0 0 20px #ff00ff;}
-  100%{color:#ff0040;text-shadow:0 0 20px #ff0040;}
+  25%{color:#00ffff;text-shadow:0 0 20px #00ffff;}
+  50%{color:#00ff6a;text-shadow:0 0 20px #00ff6a;}
+  75%{color:#ffd000;text-shadow:0 0 20px #ffd000;}
+  100%{color:#ff00ff;text-shadow:0 0 20px #ff00ff;}
 }
 
-/* ⬇️ SMOOTH RGB FALLING TEXT */
+/* ⬇️ FIXED FALLING TEXT (CLEAR RGB COLORS) */
 .fall{
   position:absolute;
   top:-80px;
-  font-size:18px;
-  font-weight:700;
+  font-size:20px;
+  font-weight:800;
   white-space:nowrap;
   animation:drop linear forwards;
   will-change:transform;
-  opacity:0.95;
-  animation-timing-function: linear;
-  text-shadow:0 0 12px cyan;
+  opacity:1;
+  text-shadow:0 0 10px #fff;
 }
 
+/* smooth drop */
 @keyframes drop{
   from{transform:translate3d(0,-100px,0);}
   to{transform:translate3d(0,110vh,0);}
 }
 
-/* ✨ TOUCH NEON EFFECT */
+/* touch effect */
 .trail{
   position:absolute;
   width:14px;
@@ -78,28 +69,12 @@ html,body{
   border-radius:50%;
   background:#fff;
   pointer-events:none;
-  box-shadow:0 0 10px red,0 0 20px cyan,0 0 30px lime;
+  box-shadow:0 0 10px red,0 0 20px blue,0 0 30px lime;
   animation:fade .8s forwards;
 }
 
 @keyframes fade{
   to{transform:scale(2.5);opacity:0;}
-}
-
-/* 🎵 MUSIC BUTTON (if autoplay blocked) */
-#btn{
-  position:absolute;
-  bottom:25px;
-  left:50%;
-  transform:translateX(-50%);
-  padding:10px 18px;
-  border:none;
-  border-radius:12px;
-  background:#111;
-  color:#fff;
-  box-shadow:0 0 12px cyan;
-  display:none;
-  z-index:20;
 }
 </style>
 </head>
@@ -110,47 +85,35 @@ html,body{
 Happy Birthday<br>Torikul
 </div>
 
-<button id="btn">Play Music</button>
-
-<audio id="music" loop playsinline>
-  <!-- 🎵 PUT YOUR REAL HAPPY BIRTHDAY MP3 HERE -->
-  <source src="music/happy-birthday.mp3" type="audio/mpeg">
-</audio>
-
 <script>
-const music=document.getElementById("music");
-const btn=document.getElementById("btn");
+/* 🌈 RGB COLOR ARRAY */
+const colors=[
+  "#ff0040","#00ffff","#00ff6a","#ffd000",
+  "#ff00ff","#ff3300","#33ccff","#66ff33"
+];
 
-/* 🎵 autoplay attempt */
-window.addEventListener("load", async ()=>{
-  try{
-    await music.play();
-  }catch(e){
-    btn.style.display="block";
-  }
-});
-
-/* manual play */
-btn.onclick=async ()=>{
-  await music.play();
-  btn.style.display="none";
-};
-
-/* ⬇️ smooth falling RGB text */
+/* ⬇️ SMOOTH RAIN WITH CLEAR COLORS */
 function spawn(){
   const el=document.createElement("div");
   el.className="fall";
   el.textContent="Happy Birthday Torikul ✨";
 
   el.style.left=Math.random()*window.innerWidth+"px";
-  el.style.animationDuration=(6 + Math.random()*4)+"s";
+
+  /* RANDOM RGB COLOR */
+  el.style.color=colors[Math.floor(Math.random()*colors.length)];
+
+  /* smooth speed */
+  el.style.animationDuration=(5 + Math.random()*4)+"s";
 
   document.body.appendChild(el);
+
   setTimeout(()=>el.remove(),10000);
 }
-setInterval(spawn,300);
 
-/* ✨ touch effect */
+setInterval(spawn,250);
+
+/* touch trail */
 document.addEventListener("touchmove",e=>{
   const t=document.createElement("div");
   t.className="trail";
@@ -159,11 +122,6 @@ document.addEventListener("touchmove",e=>{
   document.body.appendChild(t);
   setTimeout(()=>t.remove(),800);
 },{passive:true});
-
-/* 🔒 HARD ZOOM BLOCK */
-document.addEventListener('gesturestart', e => e.preventDefault());
-document.addEventListener('gesturechange', e => e.preventDefault());
-document.addEventListener('gestureend', e => e.preventDefault());
 </script>
 
 </body>
