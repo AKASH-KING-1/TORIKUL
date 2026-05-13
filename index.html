@@ -1,234 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Birthday - Torikul</title>
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #000;
-        }
-        canvas {
-            display: block;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy Birthday Torikul</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:black;
+    overflow:hidden;
+    font-family: Arial, sans-serif;
+    height:100vh;
+}
+
+/* Main Center Text */
+.center-text{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    font-size:55px;
+    font-weight:bold;
+    text-align:center;
+    animation: rgbGlow 2s infinite alternate;
+    z-index:100;
+    text-shadow:0 0 20px red;
+}
+
+/* RGB Glow */
+@keyframes rgbGlow{
+    0%{
+        color:red;
+        text-shadow:0 0 20px red;
+    }
+    33%{
+        color:lime;
+        text-shadow:0 0 25px lime;
+    }
+    66%{
+        color:cyan;
+        text-shadow:0 0 25px cyan;
+    }
+    100%{
+        color:magenta;
+        text-shadow:0 0 25px magenta;
+    }
+}
+
+/* Falling text */
+.fall{
+    position:absolute;
+    color:white;
+    font-size:18px;
+    animation: fall linear infinite;
+    white-space: nowrap;
+    opacity:0.7;
+}
+
+@keyframes fall{
+    0%{
+        transform:translateY(-100px);
+    }
+    100%{
+        transform:translateY(110vh);
+    }
+}
+
+/* touch trail */
+.trail{
+    position:absolute;
+    width:18px;
+    height:18px;
+    border-radius:50%;
+    background: white;
+    pointer-events:none;
+    animation: fadeOut 1s forwards;
+    box-shadow:
+        0 0 10px red,
+        0 0 20px blue,
+        0 0 30px lime;
+}
+
+@keyframes fadeOut{
+    to{
+        transform:scale(3);
+        opacity:0;
+    }
+}
+</style>
 </head>
 <body>
 
-<canvas id="canvas"></canvas>
+<div class="center-text">
+🎉 Happy Birthday <br> Torikul 🎂
+</div>
+
+<!-- Music -->
+<audio autoplay loop>
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mp3">
+</audio>
 
 <script>
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
+/* falling text */
+function createFallingText(){
+    let text=document.createElement("div");
+    text.className="fall";
+    text.innerText="Happy Birthday Torikul 🎉";
+    text.style.left=Math.random()*window.innerWidth+"px";
+    text.style.animationDuration=(Math.random()*4+4)+"s";
+    text.style.fontSize=(Math.random()*15+15)+"px";
+    document.body.appendChild(text);
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+    setTimeout(()=>{
+        text.remove();
+    },8000);
+}
+setInterval(createFallingText,200);
 
-let fallingTexts = [];
-let ripples = [];
-const mouse = { x: -100, y: -100, isPressed: false };
-let hue = 0;
 
-// Main Interactive Name Object
-let mainName = {
-    text: "TORIKUL",
-    x: canvas.width / 2,
-    y: canvas.height / 2,
-    size: 80,
-    isDragging: false
-};
-
-window.addEventListener('mousedown', (e) => {
-    mouse.isPressed = true;
-    checkDrag(e.x, e.y);
-});
-window.addEventListener('mousemove', (e) => {
-    mouse.x = e.x;
-    mouse.y = e.y;
-    if (mainName.isDragging) {
-        mainName.x = e.x;
-        mainName.y = e.y;
-    }
-    createRipple(e.x, e.y);
-});
-window.addEventListener('mouseup', () => {
-    mouse.isPressed = false;
-    mainName.isDragging = false;
+/* touch / mouse trail */
+document.addEventListener("mousemove",makeTrail);
+document.addEventListener("touchmove",(e)=>{
+   makeTrail(e.touches[0]);
 });
 
-window.addEventListener('touchstart', (e) => {
-    const tx = e.touches[0].clientX;
-    const ty = e.touches[0].clientY;
-    checkDrag(tx, ty);
-    createRipple(tx, ty);
-});
-window.addEventListener('touchmove', (e) => {
-    const tx = e.touches[0].clientX;
-    const ty = e.touches[0].clientY;
-    if (mainName.isDragging) {
-        mainName.x = tx;
-        mainName.y = ty;
-    }
-});
-window.addEventListener('touchend', () => {
-    mainName.isDragging = false;
-});
+function makeTrail(e){
+    let t=document.createElement("div");
+    t.className="trail";
+    t.style.left=e.pageX+"px";
+    t.style.top=e.pageY+"px";
+    document.body.appendChild(t);
 
-function checkDrag(x, y) {
-    let d = Math.sqrt((x - mainName.x)**2 + (y - mainName.y)**2);
-    if (d < 100) mainName.isDragging = true;
+    setTimeout(()=>{
+        t.remove();
+    },1000);
 }
-
-class RainText {
-    constructor() {
-        this.reset();
-    }
-    reset() {
-        this.x = Math.random() * canvas.width;
-        this.y = -Math.random() * 800;
-        this.speed = Math.random() * 2 + 1;
-        this.color = `hsla(${Math.random() * 360}, 100%, 70%, 0.7)`;
-    }
-    update() {
-        this.y += this.speed;
-        if (this.y > canvas.height) this.reset();
-    }
-    draw() {
-        ctx.fillStyle = this.color;
-        ctx.font = "14px sans-serif";
-        ctx.fillText("happy birthday", this.x, this.y);
-    }
-}
-
-function createRipple(x, y) {
-    ripples.push({ x, y, r: 0, opacity: 0.8 });
-}
-
-function drawRipples() {
-    ripples.forEach((r, i) => {
-        ctx.beginPath();
-        ctx.arc(r.x, r.y, r.r, 0, Math.PI * 2);
-        ctx.strokeStyle = `hsla(${hue}, 100%, 60%, ${r.opacity})`;
-        ctx.lineWidth = 3;
-        ctx.stroke();
-        r.r += 6;
-        r.opacity -= 0.02;
-        if (r.opacity <= 0) ripples.splice(i, 1);
-    });
-}
-
-function init() {
-    fallingTexts = [];
-    for (let i = 0; i < 70; i++) fallingTexts.push(new RainText());
-}
-
-function animate() {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    hue = (hue + 2) % 360;
-
-    // Draw Falling Background Text
-    fallingTexts.forEach(t => {
-        t.update();
-        t.draw();
-    });
-
-    drawRipples();
-
-    // Draw RGB Main Name (Drag and Drop)
-    ctx.save();
-    ctx.shadowBlur = 40;
-    ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
-    ctx.fillStyle = `hsl(${hue}, 100%, 65%)`;
-    ctx.font = `bold ${mainName.size}px sans-serif`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(mainName.text, mainName.x, mainName.y);
-    ctx.restore();
-
-    requestAnimationFrame(animate);
-}
-
-init();
-animate();
 </script>
-</body>
-</html>
-    }
 
-    for (let i = 0; i < mainName.length; i++) {
-        particles.push(new DropText(mainName[i], (canvas.width / 2 - 150) + (i * 45), canvas.height / 2 + 20, 60));
-    }
-}
-
-function animate() {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    drawRipples();
-
-    particles.forEach(p => {
-        p.update();
-        p.draw();
-    });
-
-    requestAnimationFrame(animate);
-}
-
-window.addEventListener('resize', () => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    init();
-});
-
-init();
-animate();
-</script>
-</body>
-</html>
-                    this.y -= directionY;
-                } else {
-                    if (this.x !== this.baseX) {
-                        let dx = this.x - this.baseX;
-                        this.x -= dx / 15;
-                    }
-                    if (this.y !== this.baseY) {
-                        let dy = this.y - this.baseY;
-                        this.y -= dy / 15;
-                    }
-                }
-            }
-        }
-
-        function init() {
-            particles = [];
-            for (let i = 0; i < 250; i++) {
-                particles.push(new Particle());
-            }
-        }
-
-        function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            for (let i = 0; i < particles.length; i++) {
-                particles[i].draw();
-                particles[i].update();
-            }
-            requestAnimationFrame(animate);
-        }
-
-        init();
-        animate();
-
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            init();
-        });
-    </script>
 </body>
 </html>
