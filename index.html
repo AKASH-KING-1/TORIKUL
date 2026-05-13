@@ -5,112 +5,144 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Premium Birthday - Torikul</title>
     <style>
-        body {
+        body, html {
             margin: 0;
-            background: #000;
+            padding: 0;
+            width: 100%;
+            height: 100%;
             overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            font-family: 'Arial Black', sans-serif;
+            background-color: #000;
         }
         canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
-        #text-overlay {
-            position: relative;
-            z-index: 10;
-            text-align: center;
-            pointer-events: none;
-        }
-        h1 {
-            font-size: 5rem;
-            margin: 0;
-            background: linear-gradient(to right, #ff0055, #00d4ff, #ffd700, #00ff44);
-            -webkit-background-clip: text;
-            color: transparent;
-            text-transform: uppercase;
-            filter: drop-shadow(0 0 20px rgba(255,255,255,0.3));
-            animation: animateText 3s linear infinite;
-        }
-        h2 {
-            font-size: 4.5rem;
-            color: #fff;
-            letter-spacing: 12px;
-            text-shadow: 0 0 30px #00d4ff;
-            margin-top: 10px;
-        }
-        @keyframes animateText {
-            0% { filter: hue-rotate(0deg); }
-            100% { filter: hue-rotate(360deg); }
+            display: block;
         }
     </style>
 </head>
 <body>
 
-    <canvas id="canvas"></canvas>
+<canvas id="canvas"></canvas>
 
-    <div id="text-overlay">
-        <h1>Happy Birthday</h1>
-        <h2>TORIKUL</h2>
-    </div>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
 
-    <script>
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-        let particles = [];
-        const mouse = { x: null, y: null, radius: 180 };
+let particles = [];
+let ripples = [];
+const mouse = { x: -100, y: -100 };
 
-        window.addEventListener('mousemove', (e) => {
-            mouse.x = e.x;
-            mouse.y = e.y;
-        });
+window.addEventListener('mousemove', (e) => {
+    mouse.x = e.x;
+    mouse.y = e.y;
+    createRipple(e.x, e.y);
+});
 
-        window.addEventListener('touchstart', (e) => {
-            mouse.x = e.touches[0].clientX;
-            mouse.y = e.touches[0].clientY;
-        });
+window.addEventListener('touchstart', (e) => {
+    mouse.x = e.touches[0].clientX;
+    mouse.y = e.touches[0].clientY;
+    createRipple(mouse.x, mouse.y);
+});
 
-        class Particle {
-            constructor() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.size = Math.random() * 4 + 1;
-                this.baseX = this.x;
-                this.baseY = this.y;
-                this.density = (Math.random() * 50) + 10;
-                this.color = `hsl(${Math.random() * 360}, 100%, 60%)`;
-            }
+class DropText {
+    constructor(text, x, y, fontSize) {
+        this.text = text;
+        this.baseX = x;
+        this.baseY = y;
+        this.x = x;
+        this.y = -50;
+        this.fontSize = fontSize;
+        this.speed = Math.random() * 2 + 1;
+        this.color = `hsl(${Math.random() * 360}, 100%, 70%)`;
+        this.angle = 0;
+    }
 
-            draw() {
-                ctx.fillStyle = this.color;
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = this.color;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.closePath();
-                ctx.fill();
-            }
+    draw() {
+        ctx.fillStyle = this.color;
+        ctx.font = `${this.fontSize}px Arial`;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = this.color;
+        ctx.fillText(this.text, this.x, this.y);
+    }
 
-            update() {
-                let dx = mouse.x - this.x;
-                let dy = mouse.y - this.y;
-                let distance = Math.sqrt(dx * dx + dy * dy);
-                let forceDirectionX = dx / distance;
-                let forceDirectionY = dy / distance;
-                let maxDistance = mouse.radius;
-                let force = (maxDistance - distance) / maxDistance;
-                let directionX = forceDirectionX * force * this.density;
-                let directionY = forceDirectionY * force * this.density;
+    update() {
+        if (this.y < this.baseY) {
+            this.y += this.speed;
+        }
 
-                if (distance < mouse.radius) {
-                    this.x -= directionX;
+        let dx = mouse.x - this.x;
+        let dy = mouse.y - this.y;
+        let distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < 120) {
+            this.angle += 0.1;
+            this.x += Math.sin(this.angle) * 5;
+            this.y += Math.cos(this.angle) * 5;
+        } else {
+            this.x += (this.baseX - this.x) * 0.05;
+            this.y += (this.baseY - this.y) * 0.05;
+        }
+    }
+}
+
+function createRipple(x, y) {
+    ripples.push({ x, y, r: 0, opacity: 1 });
+}
+
+function drawRipples() {
+    ripples.forEach((r, i) => {
+        ctx.beginPath();
+        ctx.arc(r.x, r.y, r.r, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(0, 212, 255, ${r.opacity})`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.closePath();
+        r.r += 3;
+        r.opacity -= 0.02;
+        if (r.opacity <= 0) ripples.splice(i, 1);
+    });
+}
+
+function init() {
+    particles = [];
+    const mainName = "TORIKUL";
+    const subText = "happy birthday";
+    
+    for (let i = 0; i < subText.length; i++) {
+        particles.push(new DropText(subText[i], (canvas.width / 2 - 100) + (i * 15), canvas.height / 2 - 60, 20));
+    }
+
+    for (let i = 0; i < mainName.length; i++) {
+        particles.push(new DropText(mainName[i], (canvas.width / 2 - 150) + (i * 45), canvas.height / 2 + 20, 60));
+    }
+}
+
+function animate() {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    drawRipples();
+
+    particles.forEach(p => {
+        p.update();
+        p.draw();
+    });
+
+    requestAnimationFrame(animate);
+}
+
+window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    init();
+});
+
+init();
+animate();
+</script>
+</body>
+</html>
                     this.y -= directionY;
                 } else {
                     if (this.x !== this.baseX) {
