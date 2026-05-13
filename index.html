@@ -29,88 +29,136 @@ const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-let particles = [];
+let fallingTexts = [];
 let ripples = [];
-const mouse = { x: -100, y: -100 };
+const mouse = { x: -100, y: -100, isPressed: false };
+let hue = 0;
 
+// Main Interactive Name Object
+let mainName = {
+    text: "TORIKUL",
+    x: canvas.width / 2,
+    y: canvas.height / 2,
+    size: 80,
+    isDragging: false
+};
+
+window.addEventListener('mousedown', (e) => {
+    mouse.isPressed = true;
+    checkDrag(e.x, e.y);
+});
 window.addEventListener('mousemove', (e) => {
     mouse.x = e.x;
     mouse.y = e.y;
+    if (mainName.isDragging) {
+        mainName.x = e.x;
+        mainName.y = e.y;
+    }
     createRipple(e.x, e.y);
+});
+window.addEventListener('mouseup', () => {
+    mouse.isPressed = false;
+    mainName.isDragging = false;
 });
 
 window.addEventListener('touchstart', (e) => {
-    mouse.x = e.touches[0].clientX;
-    mouse.y = e.touches[0].clientY;
-    createRipple(mouse.x, mouse.y);
+    const tx = e.touches[0].clientX;
+    const ty = e.touches[0].clientY;
+    checkDrag(tx, ty);
+    createRipple(tx, ty);
+});
+window.addEventListener('touchmove', (e) => {
+    const tx = e.touches[0].clientX;
+    const ty = e.touches[0].clientY;
+    if (mainName.isDragging) {
+        mainName.x = tx;
+        mainName.y = ty;
+    }
+});
+window.addEventListener('touchend', () => {
+    mainName.isDragging = false;
 });
 
-class DropText {
-    constructor(text, x, y, fontSize) {
-        this.text = text;
-        this.baseX = x;
-        this.baseY = y;
-        this.x = x;
-        this.y = -50;
-        this.fontSize = fontSize;
-        this.speed = Math.random() * 2 + 1;
-        this.color = `hsl(${Math.random() * 360}, 100%, 70%)`;
-        this.angle = 0;
-    }
+function checkDrag(x, y) {
+    let d = Math.sqrt((x - mainName.x)**2 + (y - mainName.y)**2);
+    if (d < 100) mainName.isDragging = true;
+}
 
+class RainText {
+    constructor() {
+        this.reset();
+    }
+    reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = -Math.random() * 800;
+        this.speed = Math.random() * 2 + 1;
+        this.color = `hsla(${Math.random() * 360}, 100%, 70%, 0.7)`;
+    }
+    update() {
+        this.y += this.speed;
+        if (this.y > canvas.height) this.reset();
+    }
     draw() {
         ctx.fillStyle = this.color;
-        ctx.font = `${this.fontSize}px Arial`;
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = this.color;
-        ctx.fillText(this.text, this.x, this.y);
-    }
-
-    update() {
-        if (this.y < this.baseY) {
-            this.y += this.speed;
-        }
-
-        let dx = mouse.x - this.x;
-        let dy = mouse.y - this.y;
-        let distance = Math.sqrt(dx * dx + dy * dy);
-
-        if (distance < 120) {
-            this.angle += 0.1;
-            this.x += Math.sin(this.angle) * 5;
-            this.y += Math.cos(this.angle) * 5;
-        } else {
-            this.x += (this.baseX - this.x) * 0.05;
-            this.y += (this.baseY - this.y) * 0.05;
-        }
+        ctx.font = "14px sans-serif";
+        ctx.fillText("happy birthday", this.x, this.y);
     }
 }
 
 function createRipple(x, y) {
-    ripples.push({ x, y, r: 0, opacity: 1 });
+    ripples.push({ x, y, r: 0, opacity: 0.8 });
 }
 
 function drawRipples() {
     ripples.forEach((r, i) => {
         ctx.beginPath();
         ctx.arc(r.x, r.y, r.r, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(0, 212, 255, ${r.opacity})`;
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = `hsla(${hue}, 100%, 60%, ${r.opacity})`;
+        ctx.lineWidth = 3;
         ctx.stroke();
-        ctx.closePath();
-        r.r += 3;
+        r.r += 6;
         r.opacity -= 0.02;
         if (r.opacity <= 0) ripples.splice(i, 1);
     });
 }
 
 function init() {
-    particles = [];
-    const mainName = "TORIKUL";
-    const subText = "happy birthday";
-    
-    for (let i = 0; i < subText.length; i++) {
-        particles.push(new DropText(subText[i], (canvas.width / 2 - 100) + (i * 15), canvas.height / 2 - 60, 20));
+    fallingTexts = [];
+    for (let i = 0; i < 70; i++) fallingTexts.push(new RainText());
+}
+
+function animate() {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    hue = (hue + 2) % 360;
+
+    // Draw Falling Background Text
+    fallingTexts.forEach(t => {
+        t.update();
+        t.draw();
+    });
+
+    drawRipples();
+
+    // Draw RGB Main Name (Drag and Drop)
+    ctx.save();
+    ctx.shadowBlur = 40;
+    ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
+    ctx.fillStyle = `hsl(${hue}, 100%, 65%)`;
+    ctx.font = `bold ${mainName.size}px sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(mainName.text, mainName.x, mainName.y);
+    ctx.restore();
+
+    requestAnimationFrame(animate);
+}
+
+init();
+animate();
+</script>
+</body>
+</html>
     }
 
     for (let i = 0; i < mainName.length; i++) {
