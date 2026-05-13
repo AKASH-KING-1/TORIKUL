@@ -10,6 +10,8 @@
   margin:0;
   padding:0;
   box-sizing:border-box;
+  -webkit-user-select:none;
+  user-select:none;
 }
 
 html,body{
@@ -17,7 +19,12 @@ html,body{
   height:100%;
   overflow:hidden;
   background:#000;
-  font-family: Arial, sans-serif;
+  touch-action: manipulation;
+}
+
+/* NO ZOOM FIX (important for Android app-like feel) */
+body{
+  zoom:1;
 }
 
 /* Center text */
@@ -27,66 +34,72 @@ html,body{
   left:50%;
   transform:translate(-50%,-50%);
   text-align:center;
-  font-size:clamp(28px,6vw,44px);
-  font-weight:700;
-  animation:rgb 3s infinite linear;
+  font-size:clamp(30px,6vw,46px);
+  font-weight:800;
   z-index:10;
+  animation:rgb 3s infinite linear;
 }
 
 @keyframes rgb{
-  0%{color:#ff0040;text-shadow:0 0 15px #ff0040;}
-  25%{color:#00ffff;text-shadow:0 0 15px #00ffff;}
-  50%{color:#00ff6a;text-shadow:0 0 15px #00ff6a;}
-  75%{color:#ffd000;text-shadow:0 0 15px #ffd000;}
-  100%{color:#ff00ff;text-shadow:0 0 15px #ff00ff;}
+  0%{color:#ff0040;text-shadow:0 0 18px #ff0040;}
+  25%{color:#00ffff;text-shadow:0 0 18px #00ffff;}
+  50%{color:#00ff6a;text-shadow:0 0 18px #00ff6a;}
+  75%{color:#ffd000;text-shadow:0 0 18px #ffd000;}
+  100%{color:#ff00ff;text-shadow:0 0 18px #ff00ff;}
 }
 
-/* Falling text */
+/* SMOOTH BIG FALLING TEXT */
 .fall{
   position:absolute;
-  top:-50px;
-  font-size:14px;
+  top:-80px;
+  font-size:20px; /* bigger text */
+  font-weight:700;
   white-space:nowrap;
+  color:white;
+  text-shadow:0 0 12px cyan;
   animation:drop linear forwards;
   will-change: transform;
-  opacity:0.9;
-  color:white;
-  text-shadow:0 0 10px cyan;
+  opacity:0.95;
 }
 
+/* SLOW SMOOTH FALL (important fix) */
 @keyframes drop{
-  from{transform:translateY(-60px);}
-  to{transform:translateY(110vh);}
+  from{
+    transform:translate3d(0,-100px,0);
+  }
+  to{
+    transform:translate3d(0,110vh,0);
+  }
 }
 
-/* Neon touch trail */
+/* touch glow */
 .trail{
   position:absolute;
-  width:14px;
-  height:14px;
+  width:16px;
+  height:16px;
   border-radius:50%;
-  background:#fff;
+  background:white;
   pointer-events:none;
   box-shadow:0 0 10px red,0 0 20px cyan,0 0 30px lime;
-  animation:fade .8s forwards;
+  animation:fade .9s forwards;
 }
 
 @keyframes fade{
-  to{transform:scale(2.5);opacity:0;}
+  to{transform:scale(2.8);opacity:0;}
 }
 
-/* hidden fallback */
+/* hidden music button */
 #btn{
   position:absolute;
-  bottom:25px;
+  bottom:30px;
   left:50%;
   transform:translateX(-50%);
-  padding:10px 18px;
+  padding:10px 20px;
   border:none;
   border-radius:12px;
   background:#111;
   color:#fff;
-  box-shadow:0 0 12px cyan;
+  box-shadow:0 0 15px cyan;
   display:none;
 }
 </style>
@@ -95,7 +108,7 @@ html,body{
 <body>
 
 <div class="center">
-Happy Birthday <br> Torikul
+Happy Birthday<br>Torikul
 </div>
 
 <button id="btn">Play Music</button>
@@ -108,10 +121,53 @@ Happy Birthday <br> Torikul
 const music=document.getElementById("music");
 const btn=document.getElementById("btn");
 
-/* autoplay attempt */
+/* autoplay */
 window.addEventListener("load", async ()=>{
   try{
     await music.play();
+  }catch(e){
+    btn.style.display="block";
+  }
+});
+
+/* manual play */
+btn.onclick=async ()=>{
+  await music.play();
+  btn.style.display="none";
+};
+
+/* SMOOTH CONTROLLED FALLING (no jitter fix) */
+function spawn(){
+  const el=document.createElement("div");
+  el.className="fall";
+  el.textContent="Happy Birthday Torikul ✨";
+
+  el.style.left=Math.random()*window.innerWidth+"px";
+
+  /* slower + smooth */
+  el.style.animationDuration=(6 + Math.random()*4)+"s";
+
+  document.body.appendChild(el);
+
+  setTimeout(()=>el.remove(),10000);
+}
+
+/* lower frequency = no lag + smooth effect */
+setInterval(spawn,350);
+
+/* touch trail */
+document.addEventListener("touchmove",e=>{
+  const t=document.createElement("div");
+  t.className="trail";
+  t.style.left=e.touches[0].pageX+"px";
+  t.style.top=e.touches[0].pageY+"px";
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),900);
+},{passive:true});
+</script>
+
+</body>
+</html>    await music.play();
   }catch(e){
     btn.style.display="block";
   }
